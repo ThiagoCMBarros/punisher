@@ -28,5 +28,11 @@ jobs:
             git pull origin main
             
             # Reconstrói e reinicia os containers do Docker
-            docker compose down
-            docker compose up -d --build
+            sudo docker compose down
+            sudo docker compose up -d --build
+            
+            # Aguarda 5 segundos e mostra o status e logs para diagnóstico no GitHub Actions
+            sleep 5
+            sudo docker compose ps
+            sudo docker compose logs --tail=50 web
+
