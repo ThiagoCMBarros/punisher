@@ -1,5 +1,6 @@
 name: Deploy to VPS
 
+# Trigger deploy test
 on:
   push:
     branches:
