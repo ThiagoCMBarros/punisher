@@ -1,0 +1,180 @@
+CREATE TABLE produtos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    slug VARCHAR(150) NOT NULL UNIQUE,
+    categoria VARCHAR(80) NOT NULL,
+    descricao TEXT NULL,
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE produto_variacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    produto_id INT NOT NULL,
+    nome VARCHAR(180) NOT NULL,
+    tipo VARCHAR(80) NOT NULL,
+    level INT NULL,
+    descricao TEXT NOT NULL,
+    valor REAL NOT NULL,
+    comando_rcon TEXT NULL,
+    ativo TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (produto_id) REFERENCES produtos(id)
+);
+
+INSERT INTO produtos (nome, slug, categoria, descricao) VALUES
+('Giganotosaurus', 'giganotosaurus', 'Dinos PvP', 'Dino de guerra usado em PvP, raid e defesa de território.'),
+('Carcharodontosaurus', 'carcharodontosaurus', 'Dinos PvP', 'Predador de alto dano usado para PvP e limpeza de bases.'),
+('Rex', 'rex', 'Boss', 'Dino clássico para bosses e combate pesado.'),
+('Yutyrannus', 'yutyrannus', 'Boss', 'Dino de suporte usado para buff em boss fights.'),
+('Therizinosaurus', 'therizinosaurus', 'Boss', 'Dino forte para bosses, PvP e farm.'),
+('Daeodon', 'daeodon', 'Boss', 'Dino de cura usado em bosses e suporte.'),
+('Stegosaurus', 'stegosaurus', 'Tank / Soak', 'Dino tank usado para puxar torretes e fazer soak.'),
+('Triceratops', 'triceratops', 'Tank / Soak', 'Dino resistente usado para soak e avanço em raid.'),
+('Carbonemys', 'carbonemys', 'Tank / Soak', 'Tartaruga usada para soak inicial e defesa.'),
+('Brontosaurus', 'brontosaurus', 'Tank / Soak', 'Dino gigante usado para soak pesado.'),
+('Arthropluera', 'arthropluera', 'Raid', 'Dino usado para dano em estruturas.'),
+('Ankylosaurus', 'ankylosaurus', 'Farm', 'Dino usado para farm de metal.'),
+('Doedicurus', 'doedicurus', 'Farm', 'Dino usado para farm de pedra.'),
+('Castoroides', 'castoroides', 'Farm', 'Dino usado para farm de madeira.'),
+('Argentavis', 'argentavis', 'Farm / Transporte', 'Dino voador usado para transporte e farm.'),
+('Rhyniognatha', 'rhyniognatha', 'Mobilidade PvP', 'Dino premium usado para transporte pesado e PvP.'),
+('Desmodus', 'desmodus', 'Mobilidade PvP', 'Dino voador usado para mobilidade e PvP.'),
+('Shadowmane', 'shadowmane', 'PvP Premium', 'Dino forte para combate terrestre e PvP.'),
+('Maewing', 'maewing', 'Criação / Mobilidade', 'Dino usado para criação e mobilidade.'),
+('Metal Ingot', 'metal-ingot', 'Recursos', 'Metal refinado para construções e equipamentos.'),
+('Cementing Paste', 'cementing-paste', 'Recursos', 'Pasta de cimento usada em construções avançadas.'),
+('Polymer', 'polymer', 'Recursos', 'Polímero usado em craft avançado.'),
+('Organic Polymer', 'organic-polymer', 'Recursos', 'Polímero orgânico para craft rápido.'),
+('Crystal', 'crystal', 'Recursos', 'Cristal usado em eletrônicos e estruturas.'),
+('Obsidian', 'obsidian', 'Recursos', 'Obsidiana usada em craft avançado.'),
+('Silica Pearls', 'silica-pearls', 'Recursos', 'Pérolas usadas em eletrônicos e Tek.'),
+('Black Pearls', 'black-pearls', 'Recursos', 'Pérolas negras usadas em itens avançados.'),
+('Element', 'element', 'Tek', 'Elemento usado para energia e equipamentos Tek.'),
+('Tek Replicator', 'tek-replicator', 'Tek', 'Estrutura Tek usada para craft avançado.'),
+('Tek Generator', 'tek-generator', 'Tek', 'Gerador Tek para alimentar estruturas.'),
+('Tek Transmitter', 'tek-transmitter', 'Tek', 'Transmissor Tek usado para upload e transferência.'),
+('Tek Teleporter', 'tek-teleporter', 'Tek', 'Teleporte Tek para movimentação rápida.'),
+('Kit Iniciante', 'kit-iniciante', 'Kits', 'Kit básico para novos jogadores.'),
+('Kit Farm', 'kit-farm', 'Kits', 'Kit focado em farm inicial e médio.'),
+('Kit Guerra Pequeno', 'kit-guerra-pequeno', 'Kits PvP', 'Kit básico para PvP e raid pequena.'),
+('Kit Guerra Médio', 'kit-guerra-medio', 'Kits PvP', 'Kit intermediário para raid.'),
+('Kit Guerra Grande', 'kit-guerra-grande', 'Kits PvP', 'Kit completo para guerra.'),
+('VIP Bronze', 'vip-bronze', 'VIP', 'Plano VIP básico de 30 dias.'),
+('VIP Prata', 'vip-prata', 'VIP', 'Plano VIP intermediário de 30 dias.'),
+('VIP Ouro', 'vip-ouro', 'VIP', 'Plano VIP avançado de 30 dias.'),
+('VIP Diamante', 'vip-diamante', 'VIP', 'Plano VIP premium de 30 dias.');
+
+INSERT INTO produto_variacoes (produto_id, nome, tipo, level, descricao, valor)
+SELECT id, 'Giganotosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Giganotosaurus level 1 ideal para clonagem rápida e reprodução.', 10 FROM produtos WHERE slug = 'giganotosaurus'
+UNION ALL SELECT id, 'Giganotosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Giganotosaurus macho level 225 para acasalar com suas fêmeas e fortalecer sua linhagem.', 25 FROM produtos WHERE slug = 'giganotosaurus'
+UNION ALL SELECT id, 'Casal de Giganotosaurus Lv 225', 'Casal', 225, 'Casal de Giganotosaurus level 225 para amedrontar seus inimigos no PvP.', 30 FROM produtos WHERE slug = 'giganotosaurus'
+
+UNION ALL SELECT id, 'Carcharodontosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Carcharodontosaurus level 1 ideal para clonagem e reprodução.', 10 FROM produtos WHERE slug = 'carcharodontosaurus'
+UNION ALL SELECT id, 'Carcharodontosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Carcharodontosaurus macho level 225 para PvP, raid e defesa de base.', 25 FROM produtos WHERE slug = 'carcharodontosaurus'
+UNION ALL SELECT id, 'Casal de Carcharodontosaurus Lv 225', 'Casal', 225, 'Casal de Carcharodontosaurus level 225 para criação e guerra.', 30 FROM produtos WHERE slug = 'carcharodontosaurus'
+
+UNION ALL SELECT id, 'Stegosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Stegosaurus level 1 ideal para clonagem e reprodução de tanks.', 8 FROM produtos WHERE slug = 'stegosaurus'
+UNION ALL SELECT id, 'Stegosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Stegosaurus macho level 225 feito para soak e avanço em raids.', 20 FROM produtos WHERE slug = 'stegosaurus'
+UNION ALL SELECT id, 'Casal de Stegosaurus Lv 225', 'Casal', 225, 'Casal de Stegosaurus level 225 para criar sua linha de tanks PvP.', 25 FROM produtos WHERE slug = 'stegosaurus'
+
+UNION ALL SELECT id, 'Triceratops Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Triceratops level 1 ideal para clonagem e reprodução.', 8 FROM produtos WHERE slug = 'triceratops'
+UNION ALL SELECT id, 'Triceratops Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Triceratops macho level 225 resistente para soak em torres.', 20 FROM produtos WHERE slug = 'triceratops'
+UNION ALL SELECT id, 'Casal de Triceratops Lv 225', 'Casal', 225, 'Casal de Triceratops level 225 para raid e defesa.', 25 FROM produtos WHERE slug = 'triceratops'
+
+UNION ALL SELECT id, 'Carbonemys Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Carbonemys level 1 para clonagem barata.', 5 FROM produtos WHERE slug = 'carbonemys'
+UNION ALL SELECT id, 'Carbonemys Macho Alpha Lv 225', 'Macho Alpha', 225, 'Uma Carbonemys macho level 225 para soak inicial.', 15 FROM produtos WHERE slug = 'carbonemys'
+UNION ALL SELECT id, 'Casal de Carbonemys Lv 225', 'Casal', 225, 'Casal de Carbonemys level 225 para defesa e soak.', 20 FROM produtos WHERE slug = 'carbonemys'
+
+UNION ALL SELECT id, 'Brontosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Brontosaurus level 1 para reprodução.', 10 FROM produtos WHERE slug = 'brontosaurus'
+UNION ALL SELECT id, 'Brontosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Brontosaurus macho level 225 para soak pesado.', 25 FROM produtos WHERE slug = 'brontosaurus'
+UNION ALL SELECT id, 'Casal de Brontosaurus Lv 225', 'Casal', 225, 'Casal de Brontosaurus level 225 para raid pesada.', 30 FROM produtos WHERE slug = 'brontosaurus';
+
+INSERT INTO produto_variacoes (produto_id, nome, tipo, level, descricao, valor)
+SELECT id, 'Rex Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Rex level 1 para reprodução e clonagem.', 5 FROM produtos WHERE slug = 'rex'
+UNION ALL SELECT id, 'Rex Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Rex macho level 225 para bosses e reprodução.', 15 FROM produtos WHERE slug = 'rex'
+UNION ALL SELECT id, 'Casal de Rex Lv 225', 'Casal', 225, 'Casal de Rex level 225 para boss fight.', 20 FROM produtos WHERE slug = 'rex'
+
+UNION ALL SELECT id, 'Yutyrannus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Yutyrannus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'yutyrannus'
+UNION ALL SELECT id, 'Yutyrannus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Yutyrannus macho level 225 para buff em bosses.', 15 FROM produtos WHERE slug = 'yutyrannus'
+UNION ALL SELECT id, 'Casal de Yutyrannus Lv 225', 'Casal', 225, 'Casal de Yutyrannus level 225 para suporte em bosses.', 20 FROM produtos WHERE slug = 'yutyrannus'
+
+UNION ALL SELECT id, 'Therizinosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Therizinosaurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'therizinosaurus'
+UNION ALL SELECT id, 'Therizinosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Therizinosaurus macho level 225 para bosses e PvP.', 15 FROM produtos WHERE slug = 'therizinosaurus'
+UNION ALL SELECT id, 'Casal de Therizinosaurus Lv 225', 'Casal', 225, 'Casal de Therizinosaurus level 225 para boss fight.', 20 FROM produtos WHERE slug = 'therizinosaurus'
+
+UNION ALL SELECT id, 'Daeodon Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Daeodon level 1 para reprodução.', 5 FROM produtos WHERE slug = 'daeodon'
+UNION ALL SELECT id, 'Daeodon Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Daeodon macho level 225 para cura em bosses.', 15 FROM produtos WHERE slug = 'daeodon'
+UNION ALL SELECT id, 'Casal de Daeodon Lv 225', 'Casal', 225, 'Casal de Daeodon level 225 para suporte e cura.', 20 FROM produtos WHERE slug = 'daeodon'
+
+UNION ALL SELECT id, 'Ankylosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Ankylosaurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'ankylosaurus'
+UNION ALL SELECT id, 'Ankylosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Ankylosaurus macho level 225 para farm de metal.', 10 FROM produtos WHERE slug = 'ankylosaurus'
+UNION ALL SELECT id, 'Casal de Ankylosaurus Lv 225', 'Casal', 225, 'Casal de Ankylosaurus level 225 para farm avançado.', 15 FROM produtos WHERE slug = 'ankylosaurus'
+
+UNION ALL SELECT id, 'Doedicurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Doedicurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'doedicurus'
+UNION ALL SELECT id, 'Doedicurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Doedicurus macho level 225 para farm de pedra.', 10 FROM produtos WHERE slug = 'doedicurus'
+UNION ALL SELECT id, 'Casal de Doedicurus Lv 225', 'Casal', 225, 'Casal de Doedicurus level 225 para farm.', 15 FROM produtos WHERE slug = 'doedicurus';
+
+
+INSERT INTO produto_variacoes (produto_id, nome, tipo, level, descricao, valor)
+SELECT id, 'Rex Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Rex level 1 para reprodução e clonagem.', 5 FROM produtos WHERE slug = 'rex'
+UNION ALL SELECT id, 'Rex Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Rex macho level 225 para bosses e reprodução.', 15 FROM produtos WHERE slug = 'rex'
+UNION ALL SELECT id, 'Casal de Rex Lv 225', 'Casal', 225, 'Casal de Rex level 225 para boss fight.', 20 FROM produtos WHERE slug = 'rex'
+
+UNION ALL SELECT id, 'Yutyrannus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Yutyrannus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'yutyrannus'
+UNION ALL SELECT id, 'Yutyrannus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Yutyrannus macho level 225 para buff em bosses.', 15 FROM produtos WHERE slug = 'yutyrannus'
+UNION ALL SELECT id, 'Casal de Yutyrannus Lv 225', 'Casal', 225, 'Casal de Yutyrannus level 225 para suporte em bosses.', 20 FROM produtos WHERE slug = 'yutyrannus'
+
+UNION ALL SELECT id, 'Therizinosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Therizinosaurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'therizinosaurus'
+UNION ALL SELECT id, 'Therizinosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Therizinosaurus macho level 225 para bosses e PvP.', 15 FROM produtos WHERE slug = 'therizinosaurus'
+UNION ALL SELECT id, 'Casal de Therizinosaurus Lv 225', 'Casal', 225, 'Casal de Therizinosaurus level 225 para boss fight.', 20 FROM produtos WHERE slug = 'therizinosaurus'
+
+UNION ALL SELECT id, 'Daeodon Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Daeodon level 1 para reprodução.', 5 FROM produtos WHERE slug = 'daeodon'
+UNION ALL SELECT id, 'Daeodon Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Daeodon macho level 225 para cura em bosses.', 15 FROM produtos WHERE slug = 'daeodon'
+UNION ALL SELECT id, 'Casal de Daeodon Lv 225', 'Casal', 225, 'Casal de Daeodon level 225 para suporte e cura.', 20 FROM produtos WHERE slug = 'daeodon'
+
+UNION ALL SELECT id, 'Ankylosaurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Ankylosaurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'ankylosaurus'
+UNION ALL SELECT id, 'Ankylosaurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Ankylosaurus macho level 225 para farm de metal.', 10 FROM produtos WHERE slug = 'ankylosaurus'
+UNION ALL SELECT id, 'Casal de Ankylosaurus Lv 225', 'Casal', 225, 'Casal de Ankylosaurus level 225 para farm avançado.', 15 FROM produtos WHERE slug = 'ankylosaurus'
+
+UNION ALL SELECT id, 'Doedicurus Fêmea Lv 1', 'Fêmea', 1, 'Uma fêmea Doedicurus level 1 para reprodução.', 5 FROM produtos WHERE slug = 'doedicurus'
+UNION ALL SELECT id, 'Doedicurus Macho Alpha Lv 225', 'Macho Alpha', 225, 'Um Doedicurus macho level 225 para farm de pedra.', 10 FROM produtos WHERE slug = 'doedicurus'
+UNION ALL SELECT id, 'Casal de Doedicurus Lv 225', 'Casal', 225, 'Casal de Doedicurus level 225 para farm.', 15 FROM produtos WHERE slug = 'doedicurus';
+
+
+
+INSERT INTO produto_variacoes (produto_id, nome, tipo, level, descricao, valor)
+SELECT id, '50.000 Metal Ingot', 'Recurso', NULL, 'Pacote com 50.000 Metal Ingot para construção e craft.', 15 FROM produtos WHERE slug = 'metal-ingot'
+UNION ALL SELECT id, '100.000 Metal Ingot', 'Recurso', NULL, 'Pacote com 100.000 Metal Ingot para grandes construções.', 25 FROM produtos WHERE slug = 'metal-ingot'
+
+UNION ALL SELECT id, '50.000 Cementing Paste', 'Recurso', NULL, 'Pacote com 50.000 Cementing Paste.', 15 FROM produtos WHERE slug = 'cementing-paste'
+UNION ALL SELECT id, '100.000 Cementing Paste', 'Recurso', NULL, 'Pacote com 100.000 Cementing Paste.', 25 FROM produtos WHERE slug = 'cementing-paste'
+
+UNION ALL SELECT id, '10.000 Polymer', 'Recurso', NULL, 'Pacote com 10.000 Polymer para craft avançado.', 15 FROM produtos WHERE slug = 'polymer'
+UNION ALL SELECT id, '10.000 Organic Polymer', 'Recurso', NULL, 'Pacote com 10.000 Organic Polymer para craft rápido.', 10 FROM produtos WHERE slug = 'organic-polymer'
+
+UNION ALL SELECT id, '20.000 Crystal', 'Recurso', NULL, 'Pacote com 20.000 Crystal.', 10 FROM produtos WHERE slug = 'crystal'
+UNION ALL SELECT id, '20.000 Obsidian', 'Recurso', NULL, 'Pacote com 20.000 Obsidian.', 10 FROM produtos WHERE slug = 'obsidian'
+UNION ALL SELECT id, '20.000 Silica Pearls', 'Recurso', NULL, 'Pacote com 20.000 Silica Pearls.', 15 FROM produtos WHERE slug = 'silica-pearls'
+UNION ALL SELECT id, '20.000 Black Pearls', 'Recurso', NULL, 'Pacote com 20.000 Black Pearls para craft avançado.', 20 FROM produtos WHERE slug = 'black-pearls'
+
+UNION ALL SELECT id, '500 Element', 'Tek', NULL, 'Pacote com 500 Element para energia e craft Tek.', 15 FROM produtos WHERE slug = 'element'
+UNION ALL SELECT id, '1.000 Element', 'Tek', NULL, 'Pacote com 1.000 Element.', 25 FROM produtos WHERE slug = 'element'
+UNION ALL SELECT id, '2.500 Element', 'Tek', NULL, 'Pacote com 2.500 Element.', 50 FROM produtos WHERE slug = 'element'
+UNION ALL SELECT id, '5.000 Element', 'Tek', NULL, 'Pacote com 5.000 Element.', 90 FROM produtos WHERE slug = 'element'
+
+UNION ALL SELECT id, 'Tek Replicator', 'Estrutura Tek', NULL, 'Uma unidade de Tek Replicator.', 15 FROM produtos WHERE slug = 'tek-replicator'
+UNION ALL SELECT id, 'Tek Generator', 'Estrutura Tek', NULL, 'Uma unidade de Tek Generator.', 10 FROM produtos WHERE slug = 'tek-generator'
+UNION ALL SELECT id, 'Tek Transmitter', 'Estrutura Tek', NULL, 'Uma unidade de Tek Transmitter.', 15 FROM produtos WHERE slug = 'tek-transmitter'
+UNION ALL SELECT id, 'Tek Teleporter', 'Estrutura Tek', NULL, 'Uma unidade de Tek Teleporter.', 20 FROM produtos WHERE slug = 'tek-teleporter'
+
+UNION ALL SELECT id, 'Kit Iniciante', 'Kit', NULL, 'Kit básico com recursos e equipamentos para começar no servidor.', 10 FROM produtos WHERE slug = 'kit-iniciante'
+UNION ALL SELECT id, 'Kit Farm', 'Kit', NULL, 'Kit com dinos e recursos focados em farm.', 25 FROM produtos WHERE slug = 'kit-farm'
+UNION ALL SELECT id, 'Kit Guerra Pequeno', 'Kit PvP', NULL, 'Kit básico para PvP, defesa e raid pequena.', 25 FROM produtos WHERE slug = 'kit-guerra-pequeno'
+UNION ALL SELECT id, 'Kit Guerra Médio', 'Kit PvP', NULL, 'Kit intermediário para guerras e raids.', 50 FROM produtos WHERE slug = 'kit-guerra-medio'
+UNION ALL SELECT id, 'Kit Guerra Grande', 'Kit PvP', NULL, 'Kit completo para raid e guerra pesada.', 100 FROM produtos WHERE slug = 'kit-guerra-grande'
+
+UNION ALL SELECT id, 'VIP Bronze 30 Dias', 'VIP', NULL, 'Plano VIP Bronze com benefícios básicos por 30 dias.', 15 FROM produtos WHERE slug = 'vip-bronze'
+UNION ALL SELECT id, 'VIP Prata 30 Dias', 'VIP', NULL, 'Plano VIP Prata com benefícios intermediários por 30 dias.', 25 FROM produtos WHERE slug = 'vip-prata'
+UNION ALL SELECT id, 'VIP Ouro 30 Dias', 'VIP', NULL, 'Plano VIP Ouro com benefícios avançados por 30 dias.', 40 FROM produtos WHERE slug = 'vip-ouro'
+UNION ALL SELECT id, 'VIP Diamante 30 Dias', 'VIP', NULL, 'Plano VIP Diamante com benefícios premium por 30 dias.', 60 FROM produtos WHERE slug = 'vip-diamante';

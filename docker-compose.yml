@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ark_postgres_db
+    restart: always
+    environment:
+      POSTGRES_DB: ark_server_db
+      POSTGRES_USER: ark_admin
+      POSTGRES_PASSWORD: ark_secure_pass_998
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: ark_web_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=ark_server_db
+      - DB_USER=ark_admin
+      - DB_PASSWORD=ark_secure_pass_998
+      - JWT_SECRET=ark_jwt_secret_token_key_12345
+      - MERCADO_PAGO_ACCESS_TOKEN=APP_USR-mock-token-for-testing
+      - MERCADO_PAGO_WEBHOOK_SECRET=mp_secret_webhook_verification
+      - EMAIL_HOST=smtp.mailtrap.io
+      - EMAIL_PORT=2525
+      - EMAIL_USER=mock_user
+      - EMAIL_PASS=mock_pass
+      - EMAIL_FROM=no-reply@punisherbrasil.com.br
+      - NODE_ENV=production
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
