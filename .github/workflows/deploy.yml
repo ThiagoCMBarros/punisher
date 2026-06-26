@@ -1,6 +1,5 @@
 name: Deploy to VPS
 
-# Trigger deploy test
 on:
   push:
     branches:
@@ -22,25 +21,27 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            # Acessa a pasta do site na VPS
             cd /sites/punisherbrasil.com.br
-            
-            # Puxa a versão mais recente do código
-            git pull origin main
-            
-            # Reconstrói e reinicia os containers do Docker (suporta v1 e v2)
+
+            git fetch --all
+            git reset --hard origin/main
+            git clean -fd
+
             if docker compose version >/dev/null 2>&1; then
               DOCKER_CMD="sudo docker compose"
             else
               DOCKER_CMD="sudo docker-compose"
             fi
-            
+
             $DOCKER_CMD down
             $DOCKER_CMD up -d --build
-            
-            # Aguarda 5 segundos e mostra o status e logs para diagnóstico no GitHub Actions
-            sleep 5
+
+            sleep 10
+
             $DOCKER_CMD ps
-            $DOCKER_CMD logs --tail=50 web
+            $DOCKER_CMD logs --tail=80
 
+            curl -s --fail http://127.0.0.1:3000 || exit 1
 
+            sudo nginx -t
+            sudo systemctl reload nginx
