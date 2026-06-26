@@ -728,7 +728,7 @@ async function loadAdminOrders() {
   const tbody = document.getElementById('admin-orders-tbody');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Carregando histórico de pedidos...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Carregando histórico de pedidos...</td></tr>';
 
   try {
     const res = await fetch('/api/admin/orders', {
@@ -738,7 +738,7 @@ async function loadAdminOrders() {
 
     if (res.ok && data.orders) {
       if (data.orders.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--muted);">Nenhum pedido efetuado no sistema.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--muted);">Nenhum pedido efetuado no sistema.</td></tr>';
         return;
       }
 
@@ -748,34 +748,85 @@ async function loadAdminOrders() {
           day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
+        // Calcular status geral da entrega RCON
+        let deliveryBadge = '';
+        if (order.payment_status === 'approved') {
+          const rconItems = (order.items || []).filter(it => it.delivery_status !== null);
+          if (rconItems.length === 0) {
+            deliveryBadge = '<span class="badge-status approved">Imediato</span>';
+          } else {
+            const statuses = rconItems.map(it => it.delivery_status);
+            if (statuses.includes('error')) {
+              deliveryBadge = '<span class="badge-status error">Erro</span>';
+            } else if (statuses.includes('pending')) {
+              deliveryBadge = '<span class="badge-status pending">Pendente</span>';
+            } else if (statuses.every(s => s === 'delivered')) {
+              deliveryBadge = '<span class="badge-status approved">Entregue</span>';
+            } else if (statuses.every(s => s === 'cancelled')) {
+              deliveryBadge = '<span class="badge-status cancelled">Cancelado</span>';
+            } else {
+              deliveryBadge = '<span class="badge-status pending">Parcial</span>';
+            }
+          }
+        } else {
+          deliveryBadge = '<span class="badge-status cancelled">-</span>';
+        }
+
+        // Montar botões de ações
+        let actionsHtml = `
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem;" onclick="editOrderRecipient('${order.id}', '${order.recipient_ark_id}')" title="Alterar ID do Destinatário">
+            <i class="fa-solid fa-user-pen"></i> ID
+          </button>
+        `;
+
+        if (order.payment_status !== 'approved') {
+          actionsHtml += `
+            <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem; background-color: var(--secondary); border-color: var(--secondary);" onclick="approveOrderManually('${order.id}')" title="Aprovar Pedido Manualmente">
+              <i class="fa-solid fa-check"></i> Aprovar
+            </button>
+          `;
+        } else {
+          const hasRconItems = (order.items || []).some(it => 
+            it.delivery_status !== null || 
+            (it.category && !['vip', 'coins', 'moedas'].includes(it.category.toLowerCase()) && !it.product_name.toLowerCase().includes('vip') && !it.product_name.toLowerCase().includes('moedas'))
+          );
+          if (hasRconItems) {
+            actionsHtml += `
+              <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem;" onclick="resendOrderDeliveries('${order.id}')" title="Reenviar Itens do Pedido">
+                <i class="fa-solid fa-redo"></i> Reenviar
+              </button>
+            `;
+          }
+        }
+
+        const itemsStr = (order.items || []).map(it => `${it.quantity}x ${it.product_name}`).join(', ');
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="font-family:monospace; font-size:0.8rem;">#${order.id}</td>
+          <td style="font-family:monospace; font-size:0.8rem;">#${order.id.substring(0, 8)}</td>
           <td>
             <div style="font-weight:600;">${order.purchaser_name || 'Removido'}</div>
             <div style="font-size:0.75rem; color:var(--muted);">${order.purchaser_email || ''}</div>
+            <div style="font-size:0.7rem; color:var(--text-dim); margin-top:3px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsStr}">${itemsStr || 'Sem itens'}</div>
           </td>
           <td style="font-family:monospace; font-size:0.85rem;">${order.recipient_ark_id} ${order.is_gift ? '🎁' : ''}</td>
           <td style="font-weight:700; color:var(--primary);">R$ ${parseFloat(order.total_amount).toFixed(2)}</td>
-          <td style="font-family:monospace; font-size:0.8rem; color:var(--muted);">${order.payment_id}</td>
+          <td style="font-family:monospace; font-size:0.8rem; color:var(--muted);">${order.payment_id || '-'}</td>
           <td><span class="badge-status ${order.payment_status}">${order.payment_status}</span></td>
+          <td>${deliveryBadge}</td>
           <td style="font-size:0.8rem; color:var(--muted);">${dateStr}</td>
           <td>
-            <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.75rem; margin-right: 5px;" onclick="editOrderRecipient('${order.id}', '${order.recipient_ark_id}')" title="Alterar ID do Destinatário">
-              <i class="fa-solid fa-user-pen"></i> ID
-            </button>
-            ${order.payment_status !== 'approved' ? `
-              <button class="btn btn-primary" style="padding:4px 8px; font-size:0.75rem; background-color: var(--secondary); border-color: var(--secondary);" onclick="approveOrderManually('${order.id}')" title="Aprovar Pedido Manualmente">
-                <i class="fa-solid fa-check"></i> Aprovar
-              </button>
-            ` : ''}
+            <div style="display: flex; gap: 5px; align-items: center;">
+              ${actionsHtml}
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--danger);">Erro ao carregar pedidos.</td></tr>';
+    console.error('Erro ao listar pedidos admin:', err.message);
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--danger);">Erro ao carregar pedidos.</td></tr>';
   }
 }
 
@@ -1202,6 +1253,34 @@ async function approveOrderManually(orderId) {
     }
   } catch (err) {
     showToast('Erro de rede ao aprovar pedido.', true);
+  }
+}
+
+// Reenviar entregas RCON de um pedido
+async function resendOrderDeliveries(orderId) {
+  if (!confirm('Deseja realmente reenviar todos os itens desse pedido via RCON?')) return;
+
+  try {
+    logConsole(`Disparando tentativa manual de reenvio para Pedido ID #${orderId}...`, 'info');
+    const res = await fetch(`/api/admin/orders/${orderId}/resend`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast(data.message || 'Comando de reenvio do pedido enviado!');
+      loadAdminOrders(); // Recarregar
+      if (typeof loadAdminDeliveries === 'function') loadAdminDeliveries();
+      
+      setTimeout(() => {
+        logConsole(`Reenvio manual disparado com sucesso para Pedido ID #${orderId}.`, 'success');
+      }, 1500);
+    } else {
+      showToast(data.error || 'Erro ao reenviar pedido.', true);
+    }
+  } catch (err) {
+    showToast('Erro de rede ao reenviar pedido.', true);
   }
 }
 

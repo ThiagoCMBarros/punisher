@@ -380,9 +380,29 @@ router.get('/orders', async (req, res) => {
   try {
     const ordersRes = await db.query(
       `SELECT o.id, o.is_gift, o.recipient_ark_id, o.payment_status, o.payment_id, 
-              o.total_amount, o.created_at, u.username as purchaser_name, u.email as purchaser_email
+              o.total_amount, o.created_at, u.username as purchaser_name, u.email as purchaser_email,
+              COALESCE(
+                JSON_AGG(
+                  JSON_BUILD_OBJECT(
+                    'product_name', pv.nome,
+                    'quantity', oi.quantity,
+                    'price', oi.price,
+                    'category', p.categoria,
+                    'delivery_status', (
+                       SELECT dq.status 
+                       FROM delivery_queue dq 
+                       WHERE dq.order_item_id = oi.id 
+                       LIMIT 1
+                    )
+                  )
+                ) FILTER (WHERE oi.id IS NOT NULL), '[]'
+              ) as items
        FROM orders o
        LEFT JOIN users u ON o.user_id = u.id
+       LEFT JOIN order_items oi ON o.id = oi.order_id
+       LEFT JOIN produto_variacoes pv ON oi.variation_id = pv.id
+       LEFT JOIN produtos p ON pv.produto_id = p.id
+       GROUP BY o.id, u.username, u.email
        ORDER BY o.created_at DESC`
     );
     res.status(200).json({ orders: ordersRes.rows });
@@ -756,6 +776,105 @@ router.post('/orders/:id/approve', async (req, res) => {
   } catch (err) {
     console.error('[ADMIN APPROVE ORDER ERROR]', err.message);
     res.status(500).json({ error: 'Erro ao aprovar pedido: ' + err.message });
+  }
+});
+
+/**
+ * 16b. REENVIAR PRODUTOS DE UM PEDIDO
+ * POST /api/admin/orders/:id/resend
+ */
+router.post('/orders/:id/resend', async (req, res) => {
+  const { id } = req.params;
+
+  const client = await db.pool.connect();
+  try {
+    // 1. Obter o pedido
+    const orderRes = await client.query(
+      `SELECT o.*, u.email as user_email, u.username as user_name 
+       FROM orders o
+       LEFT JOIN users u ON o.user_id = u.id
+       WHERE o.id = $1`,
+      [id]
+    );
+
+    if (orderRes.rows.length === 0) {
+      client.release();
+      return res.status(404).json({ error: 'Pedido não encontrado.' });
+    }
+
+    const order = orderRes.rows[0];
+    if (order.payment_status !== 'approved') {
+      client.release();
+      return res.status(400).json({ error: 'Apenas pedidos com pagamento aprovado podem ter entregas reenviadas.' });
+    }
+
+    await client.query('BEGIN');
+
+    // 2. Obter itens do pedido e seus comandos RCON
+    const itemsRes = await client.query(
+      `SELECT oi.id as order_item_id, oi.quantity, pv.nome as product_name, pv.comando_rcon, p.categoria as category
+       FROM order_items oi
+       JOIN produto_variacoes pv ON oi.variation_id = pv.id
+       JOIN produtos p ON pv.produto_id = p.id
+       WHERE oi.order_id = $1`,
+      [id]
+    );
+
+    let rconItemsCount = 0;
+    for (const item of itemsRes.rows) {
+      const { order_item_id, quantity, product_name, comando_rcon, category } = item;
+      const isVip = category.toLowerCase() === 'vip' || product_name.toLowerCase().includes('vip');
+      const isCoins = category.toLowerCase() === 'coins' || category.toLowerCase() === 'moedas' || product_name.toLowerCase().includes('moedas');
+
+      if (!isVip && !isCoins && comando_rcon && comando_rcon.trim() !== '') {
+        rconItemsCount++;
+        const resolvedCommand = comando_rcon.replace(/{ARK_ID}/g, order.recipient_ark_id);
+
+        // Verificar se existem itens na fila
+        const dqCheck = await client.query('SELECT id FROM delivery_queue WHERE order_item_id = $1', [order_item_id]);
+        if (dqCheck.rows.length === 0) {
+          // Criar novos
+          for (let i = 0; i < quantity; i++) {
+            await client.query(
+              `INSERT INTO delivery_queue (order_item_id, recipient_ark_id, rcon_command, status, error_log)
+               VALUES ($1, $2, $3, 'pending', 'Criado via reenvio manual do Admin')`,
+              [order_item_id, order.recipient_ark_id, resolvedCommand]
+            );
+          }
+        } else {
+          // Resetar existentes
+          await client.query(
+            `UPDATE delivery_queue 
+             SET status = 'pending', attempts = 0, error_log = 'Reenvio manual do pedido pelo Admin', last_attempt_at = NULL
+             WHERE order_item_id = $1`,
+            [order_item_id]
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    client.release();
+
+    if (rconItemsCount > 0) {
+      triggerManualDelivery();
+      
+      // Log de auditoria
+      await db.query(
+        'INSERT INTO audit_logs (user_id, action, ip_address, details) VALUES ($1, $2, $3, $4)',
+        [req.user.id, 'RETRY_ORDER_DELIVERIES', req.ip, `Solicitou reenvio de entregas RCON para o pedido ${id}`]
+      );
+
+      res.status(200).json({ message: 'Entregas RCON do pedido reiniciadas com sucesso!' });
+    } else {
+      res.status(200).json({ message: 'Este pedido contém apenas itens imediatos (VIP/Coins) que não passam pela fila RCON.' });
+    }
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    client.release();
+    console.error('[ADMIN RESEND ORDER ERROR]', err.message);
+    res.status(500).json({ error: 'Erro ao reenviar entrega do pedido: ' + err.message });
   }
 });
 
