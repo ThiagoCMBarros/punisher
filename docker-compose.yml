@@ -25,16 +25,6 @@ services:
       - DB_NAME=ark_server_db
       - DB_USER=ark_admin
       - DB_PASSWORD=ark_secure_pass_998
-      - JWT_SECRET=${JWT_SECRET:-ark_jwt_secret_token_key_12345}
-      - MERCADO_PAGO_ACCESS_TOKEN=${MERCADO_PAGO_ACCESS_TOKEN:-APP_USR-mock-token-for-testing}
-      - MERCADO_PAGO_PUBLIC_KEY=${MERCADO_PAGO_PUBLIC_KEY}
-      - MERCADO_PAGO_WEBHOOK_SECRET=${MERCADO_PAGO_WEBHOOK_SECRET:-mp_secret_webhook_verification}
-      - EMAIL_HOST=${EMAIL_HOST:-smtp.mailtrap.io}
-      - EMAIL_PORT=${EMAIL_PORT:-2525}
-      - EMAIL_USER=${EMAIL_USER:-mock_user}
-      - EMAIL_PASS=${EMAIL_PASS:-mock_pass}
-      - EMAIL_FROM=${EMAIL_FROM:-no-reply@punisherbrasil.com.br}
-      - NODE_ENV=${NODE_ENV:-production}
     depends_on:
       - db
 
