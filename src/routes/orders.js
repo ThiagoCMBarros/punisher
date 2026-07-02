@@ -347,10 +347,15 @@ router.post('/process-payment', authenticateToken, async (req, res) => {
     const configRes = await db.query(
       "SELECT value FROM server_config WHERE key = 'mercado_pago_access_token'"
     );
-    const accessToken = configRes.rows[0] ? configRes.rows[0].value : '';
+    let accessToken = configRes.rows[0] ? configRes.rows[0].value : '';
+
+    // Fallback para variável de ambiente se o token no banco for vazio ou mock
+    if (!accessToken || accessToken.includes('mock')) {
+      accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || accessToken;
+    }
 
     // 3. Fallback de Simulação / Mock se não houver token real configurado
-    if (!accessToken || accessToken.includes('mock-token')) {
+    if (!accessToken || accessToken.includes('mock')) {
       console.log('[PROCESS PAYMENT] Usando fallback Mock/Simulado');
       const mockPaymentId = 'mp_pay_' + crypto.randomBytes(8).toString('hex');
       
@@ -476,7 +481,12 @@ router.post('/webhook', webhookLimiter, async (req, res) => {
     const configRes = await db.query(
       "SELECT value FROM server_config WHERE key = 'mercado_pago_access_token'"
     );
-    const accessToken = configRes.rows[0] ? configRes.rows[0].value : '';
+    let accessToken = configRes.rows[0] ? configRes.rows[0].value : '';
+
+    // Fallback para variável de ambiente se o token no banco for vazio ou mock
+    if (!accessToken || accessToken.includes('mock')) {
+      accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN || accessToken;
+    }
 
     // Verificar se o pedido correspondente existe
     const orderRes = await db.query(

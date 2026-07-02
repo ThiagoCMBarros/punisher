@@ -65,7 +65,13 @@ router.get('/config/public-key', async (req, res) => {
     const configRes = await db.query(
       "SELECT value FROM server_config WHERE key = 'mercado_pago_public_key'"
     );
-    const publicKey = configRes.rows[0] ? configRes.rows[0].value : '';
+    let publicKey = configRes.rows[0] ? configRes.rows[0].value : '';
+    
+    // Fallback para variável de ambiente se a chave no banco for vazia ou mock
+    if (!publicKey || publicKey.includes('mock')) {
+      publicKey = process.env.MERCADO_PAGO_PUBLIC_KEY || publicKey;
+    }
+    
     res.status(200).json({ publicKey });
   } catch (err) {
     console.error('[PRODUCTS PUBLIC KEY ERROR]', err.message);
