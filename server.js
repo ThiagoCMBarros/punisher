@@ -2,12 +2,12 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
-// Carrega as chaves de produção de um arquivo separado (production.env) se ele existir.
+// Carrega as chaves de produção de um arquivo separado (.env.production) se ele existir.
 // Isso evita que painéis de controle da VPS (como Hostinger) apaguem as chaves do .env padrão.
-const prodEnvPath = path.join(__dirname, 'production.env');
+const prodEnvPath = path.join(__dirname, '.env.production');
 if (fs.existsSync(prodEnvPath)) {
   require('dotenv').config({ path: prodEnvPath, override: true });
-  console.log('🚀 [ENV] Chaves de produção carregadas com sucesso de production.env!');
+  console.log('🚀 [ENV] Chaves de produção carregadas com sucesso de .env.production!');
 }
 const express = require('express');
 const path = require('path');
