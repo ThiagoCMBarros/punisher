@@ -10,7 +10,6 @@ if (fs.existsSync(prodEnvPath)) {
   console.log('🚀 [ENV] Chaves de produção carregadas com sucesso de .env.production!');
 }
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const { initDatabase } = require('./src/config/db');
 const { startDeliveryWorker } = require('./src/services/delivery');
